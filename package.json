@@ -8,5 +8,10 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "amqplib": "^0.10.4",
+    "sequelize": "^6.37.5",
+    "socket.io": "^4.8.1"
+  }
 }
