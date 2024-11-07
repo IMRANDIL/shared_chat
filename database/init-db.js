@@ -1,5 +1,6 @@
 // shared/config/database.js
 const { sq } = require('../config/connect');
+const {defineAssociations} = require('../models/model-index')
 
 // Define retry configuration
 const MAX_RETRIES = 5;
@@ -9,10 +10,7 @@ const RETRY_DELAY = 2000; // 2 seconds
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // Load models
-const User = require('../models/user.model');
-const ChatRoom = require('../models/chatroom.model');
-const ChatRoomMembers = require('../models/chat-room-members.model');
-const Message = require('../models/message.model');
+require('../models/model-index')
 
 
 // Initialize database connection and synchronize models
@@ -22,8 +20,11 @@ const initializeDatabase = async (retries = MAX_RETRIES) => {
       await sq.authenticate();
       console.log('Database connection established.');
 
+      //define assoc
+      defineAssociations();
+
       // Synchronize all defined models
-      await sq.sync();
+      await sq.sync({alter: false});
 
       console.log('Database synchronized successfully.');
 

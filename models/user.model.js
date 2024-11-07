@@ -28,7 +28,6 @@ const User = sq.define('User', {
   timestamps: true, // Optional: adds createdAt and updatedAt fields
 });
 
-User.hasMany(Message, { foreignKey: 'senderId', onDelete: 'CASCADE' });
-User.hasMany(ChatRoomMembers, { foreignKey: 'userId', onDelete: 'CASCADE' });
+
 
 module.exports = User;

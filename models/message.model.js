@@ -36,8 +36,6 @@ const Message = sq.define('Message', {
   },
 });
 
-// Associations
-Message.belongsTo(ChatRoom, { foreignKey: 'chatRoomId' });
-Message.belongsTo(User, { foreignKey: 'senderId', as: 'sender' });
+
 
 module.exports = Message;

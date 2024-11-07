@@ -21,8 +21,6 @@ const ChatRoom = sq.define('ChatRoom', {
   },
 });
 
-// Associations
-ChatRoom.hasMany(Message, { foreignKey: 'chatRoomId', onDelete: 'CASCADE' });
-ChatRoom.hasMany(ChatRoomMembers, { foreignKey: 'chatRoomId', onDelete: 'CASCADE' });
+
 
 module.exports = ChatRoom;
