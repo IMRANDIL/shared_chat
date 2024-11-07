@@ -10,7 +10,7 @@ const defineAssociations = () => {
 
   // Message associations
   Message.belongsTo(ChatRoom, { foreignKey: 'chatRoomId' });
-  Message.belongsTo(User, { foreignKey: 'senderId', as: 'sender' });
+  Message.belongsTo(User, { foreignKey: 'senderId'});
 
   // ChatRoom associations
   ChatRoom.hasMany(Message, { foreignKey: 'chatRoomId', onDelete: 'CASCADE' });
