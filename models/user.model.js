@@ -1,8 +1,8 @@
 // shared/models/user.js
 const {DataTypes} = require('sequelize')
-const { sequelize } = require('../database/init-db');
+const { sq } = require('../config/connect');
 
-const User = sequelize.define('User', {
+const User = sq.define('User', {
   id: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,

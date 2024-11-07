@@ -1,5 +1,5 @@
 // shared/config/database.js
-const { Sequelize } = require('sequelize');
+const { sq } = require('../config/connect');
 
 // Define retry configuration
 const MAX_RETRIES = 5;
@@ -7,7 +7,7 @@ const RETRY_DELAY = 2000; // 2 seconds
 
 // Initialize Sequelize
 
-const sequelize = new Sequelize(process.env.DATABASE_URL) // Example for postgres
+//const sequelize = new Sequelize(process.env.DATABASE_URL) // Example for postgres
 // const sequelize = new Sequelize(process.env.DATABASE_URL, {
 //   dialect: 'postgres',
 //   logging: process.env.LOG_DB || false, // Disable SQL query logging (optional)
@@ -40,23 +40,23 @@ const defineAssociations = () => {
 const initializeDatabase = async (retries = MAX_RETRIES) => {
   while (retries > 0) {
     try {
-      await sequelize.authenticate();
+      await sq.authenticate();
       console.log('Database connection established.');
 
       // Define associations
       defineAssociations();
 
       // Synchronize all defined models
-      await sequelize.sync();
+      await sq.sync();
 
       console.log('Database synchronized successfully.');
 
       // Handle disconnection events
-      sequelize.connectionManager.on('disconnection', async () => {
+      sq.connectionManager.on('disconnection', async () => {
         console.warn('Database connection lost. Reconnecting...');
         await initializeDatabase();
       });
-      sequelize.connectionManager.on('error', async (error) => {
+      sq.connectionManager.on('error', async (error) => {
         console.error('Database error encountered:', error);
         await initializeDatabase();
       });
@@ -77,4 +77,4 @@ const initializeDatabase = async (retries = MAX_RETRIES) => {
   }
 };
 
-module.exports = { sequelize, initializeDatabase };
+module.exports = {  initializeDatabase };

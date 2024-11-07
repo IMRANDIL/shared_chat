@@ -1,11 +1,9 @@
 // shared/models/chatRoom.model.js
 const { DataTypes } = require('sequelize');
-const sequelize = require('../database/init-db');
-const Message = require('./message.model');
-const ChatRoomMembers = require('./chat-room-members.model');
-const User = require('./user.model');
+const {sq} = require('../config/connect');
 
-const ChatRoom = sequelize.define('ChatRoom', {
+
+const ChatRoom = sq.define('ChatRoom', {
   id: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
