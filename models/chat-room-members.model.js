@@ -23,6 +23,8 @@ const ChatRoomMembers = sq.define('ChatRoomMembers', {
   },
 });
 
-
+// Associations
+ChatRoomMembers.belongsTo(ChatRoom, { foreignKey: 'chatRoomId' });
+ChatRoomMembers.belongsTo(User, { foreignKey: 'userId' });
 
 module.exports = ChatRoomMembers;

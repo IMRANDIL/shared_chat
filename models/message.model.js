@@ -2,6 +2,7 @@
 const { DataTypes } = require('sequelize');
 const {sq} = require('../config/connect');
 const ChatRoom = require('./chatroom.model');
+const User = require('./user.model');
 
 const Message = sq.define('Message', {
   id: {
@@ -20,6 +21,10 @@ const Message = sq.define('Message', {
   senderId: {
     type: DataTypes.UUID,
     allowNull: false,
+    references: {
+      model: User,
+      key: 'id',
+    },
   },
   message: {
     type: DataTypes.TEXT,
@@ -31,6 +36,8 @@ const Message = sq.define('Message', {
   },
 });
 
-
+// Associations
+Message.belongsTo(ChatRoom, { foreignKey: 'chatRoomId' });
+Message.belongsTo(User, { foreignKey: 'senderId', as: 'sender' });
 
 module.exports = Message;

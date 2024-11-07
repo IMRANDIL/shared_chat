@@ -1,6 +1,8 @@
 // shared/models/chatRoom.model.js
 const { DataTypes } = require('sequelize');
 const {sq} = require('../config/connect');
+const Message = require('./message.model');
+const ChatRoomMembers = require('./chatRoomMembers.model');
 
 
 const ChatRoom = sq.define('ChatRoom', {
@@ -19,6 +21,8 @@ const ChatRoom = sq.define('ChatRoom', {
   },
 });
 
-
+// Associations
+ChatRoom.hasMany(Message, { foreignKey: 'chatRoomId', onDelete: 'CASCADE' });
+ChatRoom.hasMany(ChatRoomMembers, { foreignKey: 'chatRoomId', onDelete: 'CASCADE' });
 
 module.exports = ChatRoom;

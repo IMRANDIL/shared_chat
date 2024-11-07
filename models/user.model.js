@@ -1,6 +1,8 @@
 // shared/models/user.js
 const {DataTypes} = require('sequelize')
 const { sq } = require('../config/connect');
+const Message = require('./message.model');
+const ChatRoomMembers = require('./chatRoomMembers.model');
 
 const User = sq.define('User', {
   id: {
@@ -25,5 +27,8 @@ const User = sq.define('User', {
 }, {
   timestamps: true, // Optional: adds createdAt and updatedAt fields
 });
+
+User.hasMany(Message, { foreignKey: 'senderId', onDelete: 'CASCADE' });
+User.hasMany(ChatRoomMembers, { foreignKey: 'userId', onDelete: 'CASCADE' });
 
 module.exports = User;
