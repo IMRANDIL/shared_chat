@@ -6,10 +6,12 @@ const MAX_RETRIES = 5;
 const RETRY_DELAY = 2000; // 2 seconds
 
 // Initialize Sequelize
-const sequelize = new Sequelize(process.env.DATABASE_URL, {
-  dialect: 'postgres',
-  logging: process.env.LOG_DB || false, // Disable SQL query logging (optional)
-});
+
+const sequelize = new Sequelize(process.env.DATABASE_URL) // Example for postgres
+// const sequelize = new Sequelize(process.env.DATABASE_URL, {
+//   dialect: 'postgres',
+//   logging: process.env.LOG_DB || false, // Disable SQL query logging (optional)
+// });
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
