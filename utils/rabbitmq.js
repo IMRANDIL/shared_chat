@@ -15,7 +15,7 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const initializeRabbitMQ = async (uri, retries = MAX_RETRIES) => {
   while (retries > 0) {
     try {
-      connection = await amqp.connect(uri);
+      connection = await amqp.connect('amqp://rabbitmq:5672');
       channel = await connection.createChannel();
 
       // Declare an exchange for the chat messages
