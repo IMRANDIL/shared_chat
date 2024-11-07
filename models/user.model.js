@@ -2,7 +2,7 @@
 const {DataTypes} = require('sequelize')
 const { sq } = require('../config/connect');
 const Message = require('./message.model');
-const ChatRoomMembers = require('./chatRoomMembers.model');
+const ChatRoomMembers = require('./chat-room-members.model');
 
 const User = sq.define('User', {
   id: {
