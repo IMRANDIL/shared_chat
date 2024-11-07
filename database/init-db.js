@@ -1,5 +1,5 @@
 // shared/config/database.js
-const { Sequelize, DataTypes } = require('sequelize');
+const { Sequelize } = require('sequelize');
 
 // Define retry configuration
 const MAX_RETRIES = 5;
@@ -75,4 +75,4 @@ const initializeDatabase = async (retries = MAX_RETRIES) => {
   }
 };
 
-module.exports = { sequelize, initializeDatabase, DataTypes };
+module.exports = { sequelize, initializeDatabase };

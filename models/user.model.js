@@ -1,5 +1,6 @@
 // shared/models/user.js
-const { DataTypes, sequelize } = require('../database/init-db');
+const {DataTypes} = require('sequelize')
+const { sequelize } = require('../database/init-db');
 
 const User = sequelize.define('User', {
   id: {
