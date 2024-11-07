@@ -12,10 +12,10 @@ const EXCHANGE_TYPE = 'direct';
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // Initialize RabbitMQ connection and channel with retry logic
-const initializeRabbitMQ = async (retries = MAX_RETRIES) => {
+const initializeRabbitMQ = async (uri, retries = MAX_RETRIES) => {
   while (retries > 0) {
     try {
-      connection = await amqp.connect(process.env.RABBITMQ_URL);
+      connection = await amqp.connect(uri);
       channel = await connection.createChannel();
 
       // Declare an exchange for the chat messages
