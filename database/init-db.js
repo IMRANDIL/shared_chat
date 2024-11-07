@@ -26,12 +26,6 @@ const initializeDatabase = async (retries = MAX_RETRIES) => {
 
       console.log("Database synchronized successfully.");
 
-      // Handle disconnection events
-      // Handle connection events using the recommended approach
-      sq.addHook("afterDisconnect", async () => {
-        console.warn("Database connection lost. Reconnecting...");
-        await initializeDatabase();
-      });
       return; // Exit once connected successfully
     } catch (error) {
       console.error(
