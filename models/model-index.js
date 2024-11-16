@@ -6,11 +6,13 @@ const ChatRoomMembers = require('./chat-room-members.model');
 const defineAssociations = () => {
   // User associations
   User.hasMany(Message, { foreignKey: 'senderId', onDelete: 'CASCADE' });
+  User.hasMany(Message, { foreignKey: 'receiverId', onDelete: 'CASCADE' }); // Added association for receiverId
   User.hasMany(ChatRoomMembers, { foreignKey: 'userId', onDelete: 'CASCADE' });
 
   // Message associations
   Message.belongsTo(ChatRoom, { foreignKey: 'chatRoomId' });
-  Message.belongsTo(User, { foreignKey: 'senderId'});
+  Message.belongsTo(User, { foreignKey: 'senderId' });
+  Message.belongsTo(User, { foreignKey: 'receiverId' }); // Added association for receiverId
 
   // ChatRoom associations
   ChatRoom.hasMany(Message, { foreignKey: 'chatRoomId', onDelete: 'CASCADE' });
@@ -21,4 +23,4 @@ const defineAssociations = () => {
   ChatRoomMembers.belongsTo(User, { foreignKey: 'userId' });
 };
 
-module.exports = {defineAssociations};
+module.exports = { defineAssociations };
