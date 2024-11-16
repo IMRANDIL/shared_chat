@@ -11,7 +11,7 @@ const ChatRoom = sq.define('ChatRoom', {
     primaryKey: true,
   },
   roomType: {
-    type: DataTypes.ENUM('one-to-one', 'group'),
+    type: DataTypes.ENUM('one-to-one', 'group', 'self-chat'),
     allowNull: false,
   },
   name: {
