@@ -1,4 +1,3 @@
-// shared/config/socket.js
 const { Server } = require('socket.io');
 
 const initializeSocket = (server) => {
@@ -27,4 +26,10 @@ const emitToRoom = (io, roomId, event, data) => {
   console.log(`Message sent to room ${roomId}:`, data);
 };
 
-module.exports = { initializeSocket, joinRoom, emitToRoom };
+// Utility to broadcast a message to all sockets except sender
+const broadcast = (io, socket, event, data) => {
+  socket.broadcast.emit(event, data);
+  console.log(`Broadcast message from ${socket.id}:`, data);
+};
+
+module.exports = { initializeSocket, joinRoom, emitToRoom, broadcast };
