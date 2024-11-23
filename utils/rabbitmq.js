@@ -1,146 +1,85 @@
+// shared/config/rabbitmq.js
 const amqp = require('amqplib');
 
-let connection = null;
-let channel = null;
-let isInitialized = false;
+let connection;
+let channel;
 
 const MAX_RETRIES = 5;
-const RETRY_DELAY = 2000;
+const RETRY_DELAY = 2000; // 2 seconds
 const EXCHANGE_NAME = 'chat_exchange';
 const EXCHANGE_TYPE = 'direct';
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-async function createChannel() {
-    if (!connection) {
-        throw new Error('Connection not established');
-    }
-    const ch = await connection.createChannel();
-    await ch.assertExchange(EXCHANGE_NAME, EXCHANGE_TYPE, { durable: true });
-    return ch;
-}
-
+// Initialize RabbitMQ connection and channel with retry logic
 const initializeRabbitMQ = async (uri, retries = MAX_RETRIES) => {
-    if (isInitialized) {
-        console.log('RabbitMQ already initialized');
-        return;
+  while (retries > 0) {
+    try {
+      connection = await amqp.connect(uri);
+      channel = await connection.createChannel();
+
+      // Declare an exchange for the chat messages
+      await channel.assertExchange(EXCHANGE_NAME, EXCHANGE_TYPE, { durable: true });
+      console.log('RabbitMQ connection and channel established.');
+
+      // Handle connection close and errors to attempt reconnection
+      connection.on('close', async () => {
+        console.warn('RabbitMQ connection closed. Attempting to reconnect...');
+        await initializeRabbitMQ();
+      });
+
+      connection.on('error', async (error) => {
+        console.error('RabbitMQ connection error:', error);
+        await initializeRabbitMQ();
+      });
+
+      return; // Exit the function once connected successfully
+    } catch (error) {
+      console.error(`Failed to connect to RabbitMQ. Retries left: ${retries - 1}`, error);
+      retries -= 1;
+
+      if (retries === 0) {
+        console.error('Max retries reached. Could not connect to RabbitMQ.');
+        throw error; // Throw the error if all retries are exhausted
+      }
+
+      console.log(`Retrying RabbitMQ connection in ${RETRY_DELAY / 1000} seconds...`);
+      await sleep(RETRY_DELAY);
     }
-
-    while (retries > 0) {
-        try {
-            connection = await amqp.connect(uri);
-            channel = await createChannel();
-            isInitialized = true;
-
-            connection.on('close', async () => {
-                console.warn('RabbitMQ connection closed');
-                isInitialized = false;
-                channel = null;
-                await reconnect(uri);
-            });
-
-            connection.on('error', async (error) => {
-                console.error('RabbitMQ connection error:', error);
-                isInitialized = false;
-                channel = null;
-                await reconnect(uri);
-            });
-
-            console.log('RabbitMQ connection and channel established successfully');
-            return;
-
-        } catch (error) {
-            console.error(`Failed to connect to RabbitMQ. Retries left: ${retries - 1}`, error);
-            retries--;
-
-            if (retries === 0) {
-                throw new Error('Failed to initialize RabbitMQ after maximum retries');
-            }
-
-            await sleep(RETRY_DELAY);
-        }
-    }
+  }
 };
 
-async function reconnect(uri) {
-    console.log('Attempting to reconnect to RabbitMQ...');
-    try {
-        await initializeRabbitMQ(uri);
-    } catch (error) {
-        console.error('Failed to reconnect:', error);
-    }
-}
-
+// Publish a message to a specified queue through an exchange
 const publishToExchange = async (routingKey, message) => {
-    if (!isInitialized || !channel) {
-        throw new Error('RabbitMQ not initialized or channel not available');
-    }
-
-    try {
-        const msgBuffer = Buffer.from(JSON.stringify(message));
-        const published = channel.publish(EXCHANGE_NAME, routingKey, msgBuffer, {
-            persistent: true,
-            mandatory: true // Enable mandatory flag to get returns if message can't be routed
-        });
-
-        if (!published) {
-            throw new Error('Channel write buffer is full');
-        }
-
-        console.log(`Message published successfully to exchange "${EXCHANGE_NAME}" with routing key "${routingKey}"`, {
-            routingKey,
-            messageId: message.id || 'N/A',
-            timestamp: new Date().toISOString()
-        });
-
-        return true;
-
-    } catch (error) {
-        console.error('Error publishing message:', error);
-        throw error; // Re-throw to handle in the calling code
-    }
+  try {
+    if (!channel) throw new Error('RabbitMQ channel not initialized');
+    const msgBuffer = Buffer.from(JSON.stringify(message));
+    channel.publish(EXCHANGE_NAME, routingKey, msgBuffer, { persistent: true });
+    console.log(`Message published to exchange "${EXCHANGE_NAME}" with routing key "${routingKey}":`, message);
+  } catch (error) {
+    console.error('Error publishing message to exchange:', error);
+  }
 };
 
+// Consume messages from a specified queue bound to the exchange
 const consumeFromQueue = async (queue, routingKey, callback) => {
-    if (!isInitialized || !channel) {
-        throw new Error('RabbitMQ not initialized or channel not available');
-    }
+  try {
+    if (!channel) throw new Error('RabbitMQ channel not initialized');
 
-    try {
-        await channel.assertQueue(queue, { 
-            durable: true,
-            deadLetterExchange: `${EXCHANGE_NAME}.dlx` // Add dead letter exchange
-        });
-        
-        await channel.bindQueue(queue, EXCHANGE_NAME, routingKey);
+    // Assert the queue and bind it to the exchange with the specified routing key
+    await channel.assertQueue(queue, { durable: true });
+    await channel.bindQueue(queue, EXCHANGE_NAME, routingKey);
 
-        // Set prefetch to control message flow
-        await channel.prefetch(1);
-
-        channel.consume(queue, async (msg) => {
-            if (!msg) return;
-
-            try {
-                const content = JSON.parse(msg.content.toString());
-                await callback(content);
-                channel.ack(msg);
-            } catch (error) {
-                console.error('Error processing message:', error);
-                // Nack the message and don't requeue if it's a parsing error
-                channel.nack(msg, false, false);
-            }
-        });
-
-        console.log(`Consumer setup complete for queue "${queue}" with routing key "${routingKey}"`);
-    } catch (error) {
-        console.error('Error setting up consumer:', error);
-        throw error;
-    }
+    channel.consume(queue, (msg) => {
+      if (msg) {
+        callback(JSON.parse(msg.content.toString()));
+        channel.ack(msg);
+      }
+    });
+    console.log(`Consuming messages from queue "${queue}" with routing key "${routingKey}"`);
+  } catch (error) {
+    console.error('Error consuming messages from queue:', error);
+  }
 };
 
-module.exports = { 
-    initializeRabbitMQ, 
-    publishToExchange, 
-    consumeFromQueue,
-    isInitialized: () => isInitialized 
-};
+module.exports = { initializeRabbitMQ, publishToExchange, consumeFromQueue };
