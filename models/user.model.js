@@ -23,6 +23,10 @@ const User = sq.define('User', {
     allowNull: false,
     unique: true,
   },
+  isOnline: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
 }, {
   timestamps: true, // Optional: adds createdAt and updatedAt fields
 });
